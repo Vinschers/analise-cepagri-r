@@ -7,3 +7,12 @@ for(i in 1:nrow(df))
   if(df$sensa[i] > 90) #Sensacao termica
     df$sensa[i] <- df$sensa[i - 1]
 }
+
+#Removendo horarios repetidos
+df <- df[!duplicated(df$horario), ]
+
+#Ajustando os nomes das linhas
+rownames(df) <- NULL
+
+#Deletando variaveis que nao serao mais usadas
+rm(i)
