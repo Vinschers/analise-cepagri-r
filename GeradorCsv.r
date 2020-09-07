@@ -19,5 +19,3 @@ df <- df[df$horario >= "2015-01-01" & df$horario < "2020-01-01", ]
 
 #Ajustando os nomes das linhas
 rownames(df) <- NULL
-
-summary(df)
