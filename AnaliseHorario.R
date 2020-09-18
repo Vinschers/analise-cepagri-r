@@ -12,14 +12,13 @@ fAjustaHor <- function(h){
   #Descobrindo as horas e minutos e transformando em string
   hor <- ret %/% 3600
   min <- (ret %% 3600) %/% 60
-  
   ret <- paste(str_pad(as.character(hor), 2, "left", "0"), ":")
   ret <- paste(ret, str_pad(as.character(min), 2, "left", "0"))
   
   return (ret)
 }
 
-dfAgrupaHor$horario <- fAjustaHor(dfAgrupaHor$horario)
+dfAgrupaHor$horario <- fAjustaHor(dfAgrupaHor$horario) #Salvando as alteracores
 
 #Ajustando a ordem do DF
 ajustaOrdem <- order(dfAgrupaHor$horario)
@@ -36,6 +35,7 @@ colnames(dfAgrupaHor)[1] <- "horario"
 #Funcao para plotar
 fPlotHor <- function(tipo){
   dfPlot <- dfAgrupaHor
+  
   #O eixo X fica mais legivel se for usado variaveis do tipo "POSIXct"
   dfPlot$horario <- as.POSIXct(dfPlot$horario,format="%H : %M")
   
@@ -61,7 +61,7 @@ fPlotHor <- function(tipo){
     plot <- ggplot(dfPlot, aes(x = horario, y = umid))
     plot <- plot + geom_point() + scale_x_datetime(date_label = "%H:%M")
     plot <- plot + xlab("Horários")
-    plot <- plot + ylab("Humidade (%)")
+    plot <- plot + ylab("Umidade (%)")
     print(plot)
   }
   else if(tipo == "sensa")
@@ -89,3 +89,5 @@ fTabelaHor <- function(){
 
 #Deletando variaveis de suporte
 rm(tempoDia, tempoIni, fAjustaHor, ajustaOrdem)
+
+#Agora as funcoes e variaveis geradas podem ser usadas no console para visualizar os dados
