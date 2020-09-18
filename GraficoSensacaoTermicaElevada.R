@@ -1,7 +1,7 @@
 #Lendo novamente os dados do csv original para analisar os dados desajustados
 library(ggplot2)
 names <- c("horario", "temp", "vento", "umid", "sensa")
-df <- read.csv("SEU CAMINHO\\analise-cepagri-r\\cepagri.csv", header = FALSE, sep = ";", col.names = names)
+df <- read.csv("D:\\gusta\\Documents\\Github\\analise-cepagri-r\\cepagri.csv", header = FALSE, sep = ";", col.names = names)
 
 #Deletando variaveis que nao serao mais usadas
 rm(names)
@@ -31,3 +31,4 @@ tabelaSensacoes <- data.frame(Ano=anos, QtdSensacoesElevadas=sensacoesElevadas,s
 plot <- ggplot(tabelaErro, aes(x = anos, y = sensacoesElevadas, group= 1))
 plot <- plot + geom_point() + geom_line()
 print(plot)
+
