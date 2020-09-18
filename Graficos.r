@@ -1,10 +1,14 @@
 #Fazendo o plot
 library(ggplot2)
-plot <- ggplot(df, aes(x = horario, y = vento, alpha = 1))
+
+dfMenor <- df
+dfMenor$dataT <- format(strptime(df$horario,"%Y-%m-%d %H:%M:%S"), '%Y-%m')
+
+
+dfMenor <- dfMenor[dfMenor['dataT'] > '2018-08' & dfMenor['dataT'] < '2019-02',]
+plot <- ggplot(dfMenor, aes(x = horario, y = temp, alpha = 1))
 plot <- plot + geom_point()
+plot <- plot + xlab("Mês (2018-2019)")
+plot <- plot + ylab("Temperatura(°C)")
 
-#pdf("C:\\Users\\Pedro\\Desktop\\Projetos\\analise-cepagri-r\\grafico.pdf")
-#print(plot)
-#dev.off()
-
-#ggsave("grafico.png", width = 4, height = 6)
+print(plot)
