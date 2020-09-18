@@ -1,6 +1,6 @@
 #Lendo os dados do csv ja baixado
 names <- c("horario", "temp", "vento", "umid", "sensa")
-df <- read.csv("E:\\Biblioteca\\Desktop\\Cotuca\\analise-cepagri-r\\cepagri.csv", header = FALSE, sep = ";", col.names = names)
+df <- read.csv("SEU CAMINHO\\analise-cepagri-r\\cepagri.csv", header = FALSE, sep = ";", col.names = names)
 
 summary(df)
 
@@ -38,3 +38,4 @@ rownames(df) <- NULL
 
 #Deletando variaveis que nao serao mais usadas
 rm(i)
+

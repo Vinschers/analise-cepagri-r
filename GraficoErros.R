@@ -1,7 +1,7 @@
-#Lendo os dados do csv ja baixado
+#Lendo novamente os dados do csv original para analisar os dados desajustados
 library(ggplot2)
 names <- c("horario", "temp", "vento", "umid", "sensa")
-df <- read.csv("D:\\gusta\\Documents\\Github\\analise-cepagri-r\\cepagri.csv", header = FALSE, sep = ";", col.names = names)
+df <- read.csv("SEU CAMINHO\\analise-cepagri-r\\cepagri.csv", header = FALSE, sep = ";", col.names = names)
 
 #Deletando variaveis que nao serao mais usadas
 rm(names)
