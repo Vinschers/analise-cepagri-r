@@ -29,13 +29,15 @@ for (x in 1:nrow(df)) {
   }
 }
 
-colunaAPlotar <- 'sensa'
+colunaAPlotar <- 'umid'
 
+# Separando em dataframes pra cada estação, pra poder agregar pelo dia em seguida
 dfVerao = df[df['estacao'] == 'verao',]
 dfInverno = df[df['estacao'] == 'inverno',]
 dfPrimavera = df[df['estacao'] == 'primavera',]
 dfOutono = df[df['estacao'] == 'outono',]
 
+# Média da coluna por dia da estação
 dfVerao = aggregate(dfVerao[colunaAPlotar], by = list(DiaEstacao=dfVerao$diaEstacao), FUN=mean)
 dfVerao['estacao'] = 'verao'
 dfInverno = aggregate(dfInverno[colunaAPlotar], by =  list(DiaEstacao=dfInverno$diaEstacao), FUN=mean)
@@ -45,15 +47,28 @@ dfPrimavera['estacao'] = 'primavera'
 dfOutono = aggregate(dfOutono[colunaAPlotar], by = list(DiaEstacao=dfOutono$diaEstacao), FUN=mean)
 dfOutono['estacao'] = 'outono'
 
+# Unindo todos os dataframes novamente
 dfEstacoes = rbind(dfVerao, dfInverno, dfPrimavera, dfOutono)
 
 library(ggplot2)
 
-p <- ggplot(dfEstacoes,aes(x = DiaEstacao, y=sensa, colour=estacao))
+# Plotando o gráfico
+p <- ggplot(dfEstacoes,aes(x = DiaEstacao, y=umid, colour=estacao))
 p <- p + geom_point()
 p <- p + geom_line()
 p <- p + geom_smooth()
+p <- p + xlab("Dias desde o início da estação")
+p <- p + ylab("Umidade do ar (%)")
+p <- p + labs(colour="Estação")
 print(p)
 
+# Tabela
 tabelaEstacoes = aggregate(df[c("temp", "vento", "umid", "sensa")], by=list(Estacao=df$estacao), FUN=mean)
+colnames(tabelaEstacoes)[2] <- "Temperatura (ºC)"
+colnames(tabelaEstacoes)[3] <- "Vento (km/h)"
+colnames(tabelaEstacoes)[4] <- "Umidade (%)"
+colnames(tabelaEstacoes)[5] <- "Sensação Térmica (ºC)"
 View(tabelaEstacoes)
+
+# Correlação de Pearson de temperatura e sensação térmica
+cor(df$temp, df$sensa, method = c("pearson"))
