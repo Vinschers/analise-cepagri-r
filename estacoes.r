@@ -53,14 +53,29 @@ fAgregarColunas = function(colunaAPlotar) {
   dfEstacoes = rbind(dfVerao, dfInverno, dfPrimavera, dfOutono)
 }
 
-fPlotarEstacoes = function() {
+fPlotarEstacoes = function(colunaAPlotar) {
   # Plotando o gráfico
-  p <- ggplot(dfEstacoes,aes(x = DiaEstacao, y=umid, colour=estacao))
+  
+  if (colunaAPlotar == 'umid') {
+    p <- ggplot(dfEstacoes,aes(x = DiaEstacao, y=umid, colour=estacao))
+    p <- p + ylab("Umidade do ar (%)")
+  }
+  else if (colunaAPlotar == 'temp') {
+    p <- ggplot(dfEstacoes,aes(x = DiaEstacao, y=temp, colour=estacao))
+    p <- p + ylab("Temperatura (ºC)")
+  }
+  else if (colunaAPlotar == 'sensa') {
+    p <- ggplot(dfEstacoes,aes(x = DiaEstacao, y=sensa, colour=estacao))
+    p <- p + ylab("Sensação Térmica (ºC)")
+  }
+  else if (colunaAPlotar == 'vento') {
+    p <- ggplot(dfEstacoes,aes(x = DiaEstacao, y=vento, colour=estacao))
+    p <- p + ylab("Vento (km/h)")
+  }
   p <- p + geom_point()
   p <- p + geom_line()
   p <- p + geom_smooth()
   p <- p + xlab("Dias desde o início da estação")
-  p <- p + ylab("Umidade do ar (%)")
   p <- p + labs(colour="Estação")
   print(p)
 }
