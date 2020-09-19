@@ -1,0 +1,1 @@
+Criamos um arquivo em console, com um menu, para auxiliar a chamada das funções na ordem correta. Recomendamos fortemente que o código seja executado sem verbose, ou seja, com Ctrl + Shift + S. Uma vez com o código executado, ele mostrará os gráficos presentes em nossa análise.
