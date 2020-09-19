@@ -378,6 +378,7 @@ fTabelaHor <- function(dfTabelaHor){
 }
 
 #====================================================================================
+
 fColunasEstacoes = function (df) {
   df["estacao"] = 0
   df["diaEstacao"] = 0
@@ -459,6 +460,13 @@ fPlotarEstacoes = function(dfEstacoes, colunaAPlotar) {
   p <- p + xlab("Dias desde o início da estação")
   p <- p + labs(colour="Estação")
   print(p)
+}
+
+fAjustaEstacoes = function(df) {
+  df <- fColunasEstacoes(df)
+  df <- fAgregarColunas
+  
+  return(df)
 }
 
 fTabelaEstacoes = function(df) {
