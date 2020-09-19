@@ -14,6 +14,7 @@ leitura_de_dados <- function(caminho) {
 
   #Deletando variaveis que nao serao mais usadas
   rm(names)
+  return(df)
 }
 
 print_temperatura_2018_2019 <- function(df) {
@@ -47,9 +48,8 @@ print_intervalos_entre_registros <- function(df) {
 }
 
 #====================================================================================
-#Gráfico de [ERRO]:
-print_graficoERRO <- function(df){
-  
+anos <- c("2014","2015","2016","2017","2018","2019","2020") # Coluna com os anos
+get_tabelaErro <- function(df) {
   #grafico com frequencia de [ERRO] na temperatura em cada ano
   dfErros <- df[df$temp == " [ERRO]", ]
   
@@ -64,9 +64,12 @@ print_graficoERRO <- function(df){
   
   erros <- c(er2014,er2015,er2016,er2017,er2018,er2019,er2020)
   
-  anos <- c("2014","2015","2016","2017","2018","2019","2020") # Coluna com os anos
-  
   tabelaErro <- data.frame(Ano=anos, QtdErros=erros,stringsAsFactors=TRUE); # Data Frame com os anos e qtd erros equivalentes
+  return(tabelaErro)
+}
+#Gráfico de [ERRO]:
+print_graficoERRO <- function(df){
+  tabelaErro <- get_tabelaErro(df)
   plot <- ggplot(tabelaErro, aes(x = anos, y = QtdErros, group= 1))
   plot <- plot + geom_point() + geom_line()
   print(plot)
@@ -83,6 +86,7 @@ retira_ERRO <- function(df) {
 #====================================================================================
 #Grafico Sensacao Termica Elevada(após padronizar as datas):
 print_graficoSensaTermElevada <- function(df){
+  tabelaErro <- get_tabelaErro(df)
   s2014 <- nrow(df[df$horario >= "2014-01-01" & df$horario < "2015-01-01" & df$sensa > 90, ])#sensacoes em 2014
   s2015 <- nrow(df[df$horario >= "2015-01-01" & df$horario < "2016-01-01" & df$sensa > 90, ])#sensacoes em 2015
   s2016 <- nrow(df[df$horario >= "2016-01-01" & df$horario < "2017-01-01" & df$sensa > 90, ])#sensacoes em 2016
@@ -116,7 +120,7 @@ print_graficoUmidZero <- function(df){
   
   umidadesZero <- c(u2014,u2015,u2016,u2017,u2018,u2019,u2020)
   
-  anos <- c("2014","2015","2016","2017","2018","2019","2020") # Coluna com os anos
+  tabelaErro <- get_tabelaErro(df)
   
   tabelaUmidade <- data.frame(Ano=anos, QtdUmidadesZero=umidadesZero,stringsAsFactors=TRUE); # Data Frame com os anos e qtd umidades zero
   plot <- ggplot(tabelaErro, aes(x = anos, y = umidadesZero, group= 1))
@@ -126,6 +130,7 @@ print_graficoUmidZero <- function(df){
 
 #====================================================================================
 processa_dataframe <- function(df) {
+  df$horario <- as.POSIXct(df$horario,format="%d/%m/%Y-%H:%M",tz=Sys.timezone())
   #Ajustando os tipos das colunas
   df$temp <- as.numeric(df$temp)
   #Removendo as linhas que nao serao analisadas
@@ -135,7 +140,7 @@ processa_dataframe <- function(df) {
   rownames(df) <- NULL
 
   #Ajustando valores
-  for(i in 1:nrow(df))
+  for(i in 2:nrow(df))
   {
     if(df$umid[i] == 0) #Umidade
       df$umid[i] <- df$umid[i - 1]
@@ -152,6 +157,8 @@ processa_dataframe <- function(df) {
 
   #Deletando variaveis que nao serao mais usadas
   rm(i)
+  
+  return(df)
 }
 
 
@@ -164,14 +171,12 @@ print_graficoOuTabelaTempMediaAnual <- function(df, mostra_tabela){
                        mean(df$temp[df$horario>="2018-01-01" & df$horario<"2019-01-01"]),
                        mean(df$temp[df$horario>="2019-01-01"])) # Coluna com as médias de temperatura equivalentes aos anos
   
-  anos <- c("2015","2016","2017","2018","2019") # Coluna com os anos
-  
-  tabela1 <- data.frame(Ano=anos, Media=tempMediaAnuais,
+  tabela1 <- data.frame(Ano=anos[2:6], Media=tempMediaAnuais,
                         stringsAsFactors=TRUE); # Data Frame com os anos e temperaturas médias equivalentes
   
   if (!mostra_tabela) {
-    plot <- ggplot(tabela1, aes(x = anos, y = tempMediaAnuais, group= 1))
-    plot <- plot + geom_point() + geom_line()
+    plot <- ggplot(tabela1, aes(x = anos[2:6], y = tempMediaAnuais, group= 1))
+    plot <- plot + geom_point() + geom_line() + xlab("Anos") + ylab("Temperatura (oC)")
   
     print(plot)
   }
@@ -256,11 +261,13 @@ plotTimeXUmidSens <- function(df, start="2015-01-01", end="2020-01-01") {
   df$sensa <- (df$sensa - min(df$sensa))/(max(df$sensa) - min(df$sensa))
   
   #plot em si
-  ggplot(data=df[df$dia >= start & df$dia < end,], aes(dia)) +
+  plot <- ggplot(data=df[df$dia >= start & df$dia < end,], aes(dia)) +
     geom_line(aes(y=umid, colour="umid"), size=1) +
     geom_line(aes(y=sensa, colour="sensa"), size=1) +
     xlab("Data") +
     ylab("Umidade & Sensação térmica")
+  
+  print(plot)
 }
 
 #Cria um plot que dá a sensação térmica média em função da umidade
@@ -276,27 +283,29 @@ plotUmidXSens <- function(df) {
   df2 = data.frame(umid=umids, sensa=sens)
   corr = cor(df2)
   
-  ggplot(df2, aes(umid, sensa)) +
+  plot <- ggplot(df2, aes(umid, sensa)) +
     geom_smooth(method='lm', formula= y~x) +
     geom_point() +
     xlab("Umidade (%)") +
     ylab("Sensação térmica (°C)")
   
+  print(plot)
+  
   return(corr)
 }
 
 #====================================================================================
+tempoIni <- 0
 
 fAgrupa_horario <- function(df) {
   #Ajustando as datas para suas devidas horas do dia
   dfAgrupaHor <- df
   tempoIni <- as.numeric(dfAgrupaHor[1, 1])
-  tempoDia <- 86400 #Segundos num dia
   return(dfAgrupaHor)
 }
 
 fAjustaHor <- function(h){
-  ret <- (as.numeric(h) - tempoIni) %% tempoDia #Calculando quanto tempo se passou desdo inicio do dia
+  ret <- (as.numeric(h) - tempoIni) %% 86400 #Calculando quanto tempo se passou desdo inicio do dia
   #Descobrindo as horas e minutos e transformando em string
   hor <- ret %/% 3600
   min <- (ret %% 3600) %/% 60
@@ -454,29 +463,25 @@ fPlotarEstacoes = function(dfEstacoes, colunaAPlotar) {
     p <- ggplot(dfEstacoes,aes(x = DiaEstacao, y=vento, colour=estacao))
     p <- p + ylab("Vento (km/h)")
   }
-  p <- p + geom_point()
-  p <- p + geom_line()
-  p <- p + geom_smooth()
+  if (colunaAPlotar == 'temp' || colunaAPlotar == 'sensa') {
+    p <- p + geom_point()
+    p <- p + geom_line()
+  }
+  p <- p + geom_smooth(method='loess', formula= y~x)
   p <- p + xlab("Dias desde o início da estação")
   p <- p + labs(colour="Estação")
   print(p)
 }
 
-fAjustaEstacoes = function(df) {
-  df <- fColunasEstacoes(df)
-  df <- fAgregarColunas
-  
-  return(df)
-}
-
 fTabelaEstacoes = function(df) {
   # Tabela
+  
   tabelaEstacoes = aggregate(df[c("temp", "vento", "umid", "sensa")], by=list(Estacao=df$estacao), FUN=mean)
   colnames(tabelaEstacoes)[2] <- "Temperatura (°C)"
   colnames(tabelaEstacoes)[3] <- "Vento (km/h)"
   colnames(tabelaEstacoes)[4] <- "Umidade (%)"
   colnames(tabelaEstacoes)[5] <- "Sensação Térmica (°C)"
-  View(tabelaEstacoes)
+  return(tabelaEstacoes)
 }
 
 fCorEstacoes = function(df) {
@@ -484,14 +489,35 @@ fCorEstacoes = function(df) {
   cor(df$temp, df$sensa, method = c("pearson"))
 }
 
-
 caminho <- readline("Digite o caminho absoluto para o cepagri.csv: ")
-df_bruto <- leitura_de_dados(caminho)
-df_sem_erros <- retira_ERRO(df)
-df_processado <- processa_dataframe(df_sem_erros)
-df_media_dia <- fCalcula_media_diaria(df_processado)
-df_media_hora <- fAjusta_dfHor(df_processado)
-df_estacoes <- fAjustaEstacoes(df_processado)
+
+print("Aviso: todo o processamento pode levar cerca de 10 minutos.")
+
+if (!exists("df_bruto"))
+  df_bruto <- leitura_de_dados(caminho)
+print("Processamento bruto OK")
+
+if (!exists("df_sem_erros"))
+  df_sem_erros <- retira_ERRO(df_bruto)
+print("Processamento sem erros OK")
+
+if(!exists("df_processado"))
+  df_processado <- processa_dataframe(df_sem_erros)
+print("Processamento geral OK")
+
+if(!exists("df_media_dia"))
+  df_media_dia <- fCalcula_media_diaria(df_processado)
+print("Processamento por dia OK")
+
+if(!exists("df_media_hora"))
+  df_media_hora <- fAjusta_dfHor(df_processado)
+print("Processamento por horario OK")
+
+if(!exists("df_tabela_estacoes"))
+  df_tabela_estacoes <- fColunasEstacoes(df_processado)
+if(!exists("df_estacoes"))
+  df_estacoes <- fAgregarColunas(df_tabela_estacoes)
+print("Processamento estacoes OK")
 
 opcoes <- c("Gráfico de erros", "Gráfico de erros de sensação térmica", "Gráfico de erros de umidade",
             "Gráfico de intervalos != 10", "Gráfico final de 2018 e começo de 2019", "Gráfico de temperatura média anual",
@@ -519,6 +545,7 @@ while (T) {
   } else if (opcao == 3) {
     print_graficoUmidZero(df_sem_erros)
   } else if (opcao == 4) {
+    print("Aviso: grafico pode demorar cerca de 2 minutos para aparecer.")
     print_intervalos_entre_registros(df_sem_erros)
   } else if (opcao == 5) {
     print_temperatura_2018_2019(df_processado)
@@ -527,7 +554,7 @@ while (T) {
   } else if (opcao == 7) {
     print_graficoOuTabelaTempMediaAnual(df_processado, T)
   } else if (opcao == 8) {
-    plotTimeXUmidSens(df_media_dia)
+    plotTimeXUmidSens(df_media_dia, end="2015-03-30")
   } else if (opcao == 9) {
     plotUmidXSens(df_media_dia)
   } else if (opcao == 10) {
@@ -541,9 +568,9 @@ while (T) {
   } else if (opcao == 14) {
     print_PlotHor(df_media_hora, "sensa")
   } else if (opcao == 15) {
-    fTabelaHor(df_media_hora)
+    myView(fTabelaHor(df_media_hora))
   } else if (opcao == 16) {
-    myView(fTabelaEstacoes(df_estacoes))
+    myView(fTabelaEstacoes(df_tabela_estacoes))
   } else if (opcao == 17) {
     fPlotarEstacoes(df_estacoes, "temp")
   } else if (opcao == 18) {
