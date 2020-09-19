@@ -1,6 +1,8 @@
 library(stringr)
 library(ggplot2)
 
+myView <- function(x, title)
+  get("View", envir = as.environment("package:utils"))(x, title)
 
 leitura_de_dados <- function(caminho) {
   #Lendo os dados do csv ja baixado
@@ -155,7 +157,7 @@ processa_dataframe <- function(df) {
 
 #====================================================================================
 #Gráfico de Temperatura média anual:
-print_graficoTempMediaAnual <- function(df){
+print_graficoOuTabelaTempMediaAnual <- function(df, mostra_tabela){
   tempMediaAnuais <- c(mean(df$temp[df$horario>="2015-01-01" & df$horario<"2016-01-01"]),
                        mean(df$temp[df$horario>="2016-01-01" & df$horario<"2017-01-01"]),
                        mean(df$temp[df$horario>="2017-01-01" & df$horario<"2018-01-01"]),
@@ -167,10 +169,15 @@ print_graficoTempMediaAnual <- function(df){
   tabela1 <- data.frame(Ano=anos, Media=tempMediaAnuais,
                         stringsAsFactors=TRUE); # Data Frame com os anos e temperaturas médias equivalentes
   
-  plot <- ggplot(tabela1, aes(x = anos, y = tempMediaAnuais, group= 1))
-  plot <- plot + geom_point() + geom_line()
+  if (!mostra_tabela) {
+    plot <- ggplot(tabela1, aes(x = anos, y = tempMediaAnuais, group= 1))
+    plot <- plot + geom_point() + geom_line()
   
-  print(plot)
+    print(plot)
+  }
+  else {
+    myView(tabela1)
+  }
 }
 
 #====================================================================================
@@ -299,7 +306,8 @@ fAjustaHor <- function(h){
   return (ret)
 }
 
-fAjusta_dfHor <- function(dfAgrupaHor) {
+fAjusta_dfHor <- function(df) {
+  dfAgrupaHor <- fAgrupa_horario(df)
   dfAgrupaHor$horario <- fAjustaHor(dfAgrupaHor$horario) #Salvando as alteracoes
 
   #Ajustando a ordem do DF
@@ -318,9 +326,7 @@ fAjusta_dfHor <- function(dfAgrupaHor) {
 }
 
 #Funcao para plotar
-print_PlotHor <- function(tipo){
-  dfPlot <- dfAgrupaHor
-  
+print_PlotHor <- function(dfPlot, tipo){
   #O eixo X fica mais legivel se for usado variaveis do tipo "POSIXct"
   dfPlot$horario <- as.POSIXct(dfPlot$horario,format="%H : %M")
   
@@ -360,9 +366,8 @@ print_PlotHor <- function(tipo){
 }
 
 #Funcao para mostrar a tabela
-fTabelaHor <- function(){
+fTabelaHor <- function(dfTabelaHor){
   #Tirando os minutos dos horarios: queremos ver as medias das horas
-  dfTabelaHor <- dfAgrupaHor
   dfTabelaHor$horario <- paste(substr(dfTabelaHor$horario, 1, 2), "h")
   
   #Agrupando os horarios e descobrindo as medias
@@ -473,6 +478,12 @@ fCorEstacoes = function(df) {
 
 
 caminho <- readline("Digite o caminho absoluto para o cepagri.csv: ")
+df_bruto <- leitura_de_dados(caminho)
+df_sem_erros <- retira_ERRO(df)
+df_processado <- processa_dataframe(df_sem_erros)
+df_media_dia <- fCalcula_media_diaria(df_processado)
+df_media_hora <- fAjusta_dfHor(df_processado)
+df_estacoes <- fAjustaEstacoes(df_processado)
 
 opcoes <- c("Gráfico de erros", "Gráfico de erros de sensação térmica", "Gráfico de erros de umidade",
             "Gráfico de intervalos != 10", "Gráfico final de 2018 e começo de 2019", "Gráfico de temperatura média anual",
@@ -481,56 +492,57 @@ opcoes <- c("Gráfico de erros", "Gráfico de erros de sensação térmica", "Gráfico
             "Gráfico de temperatura por hora do dia", "Gráfico de umidade por hora do dia", "Gráfico de vento por hora do dia",
             "Gráfico de sensação térmica por hora do dia", "Tabela das variáveis pelo horário do dia", "Tabela das variáveis pelas estações",
             "Gráfico de temperatura por estação", "Gráfico de umidade por estação", "Gráfico de vento por estação", "Gráfico de sensação térmica por estação")
-for (i in 1:length(opcoes)) {
-  print(paste(as.character(i), ". ", opcoes[i]))
-}
 
-opcao <- as.numeric(readline("Selecione a opção: "))
-
-if (opcao < 1 || opcao > 20) {
-  stop("Digitou errado.")
-}
-
-df <- leitura_de_dados(caminho)
-
-if (opcao == 1) {
+while (T) {
+  for (i in 1:length(opcoes)) {
+    print(paste(as.character(i), ". ", opcoes[i]))
+  }
   
-} else if (opcao == 2) {
-  #
-} else if (opcao == 3) {
-  #
-} else if (opcao == 4) {
-  #
-} else if (opcao == 5) {
-  #
-} else if (opcao == 6) {
-  #
-} else if (opcao == 7) {
-  #
-} else if (opcao == 8) {
-  #
-} else if (opcao == 9) {
-  #
-} else if (opcao == 10) {
-  #
-} else if (opcao == 11) {
-  #
-} else if (opcao == 12) {
-  #
-} else if (opcao == 13) {
-  #
-} else if (opcao == 14) {
-  #
-} else if (opcao == 15) {
-  #
-} else if (opcao == 16) {
-  #
-} else if (opcao == 17) {
-  #
-} else if (opcao == 18) {
-  #
-} else if (opcao == 19) {
-  #
-} else if (opcao == 20) {
-  #
+  opcao <- as.numeric(readline("Selecione a opção: "))
+  
+  if (opcao < 1 || opcao > 20) {
+    stop("Digitou errado.")
+  }
+  
+  if (opcao == 1) {
+    print_graficoERRO(df_bruto)
+  } else if (opcao == 2) {
+    print_graficoSensaTermElevada(df_sem_erros)
+  } else if (opcao == 3) {
+    print_graficoUmidZero(df_sem_erros)
+  } else if (opcao == 4) {
+    print_intervalos_entre_registros(df_sem_erros)
+  } else if (opcao == 5) {
+    print_temperatura_2018_2019(df_processado)
+  } else if (opcao == 6) {
+    print_graficoOuTabelaTempMediaAnual(df_processado, F)
+  } else if (opcao == 7) {
+    print_graficoOuTabelaTempMediaAnual(df_processado, T)
+  } else if (opcao == 8) {
+    plotTimeXUmidSens(df_media_dia)
+  } else if (opcao == 9) {
+    plotUmidXSens(df_media_dia)
+  } else if (opcao == 10) {
+    myView(plotUmidXSens(df_media_dia))
+  } else if (opcao == 11) {
+    print_PlotHor(df_media_hora, "temp")
+  } else if (opcao == 12) {
+    print_PlotHor(df_media_hora, "umid")
+  } else if (opcao == 13) {
+    print_PlotHor(df_media_hora, "vento")
+  } else if (opcao == 14) {
+    print_PlotHor(df_media_hora, "sensa")
+  } else if (opcao == 15) {
+    fTabelaHor(df_media_hora)
+  } else if (opcao == 16) {
+    myView(fTabelaEstacoes(df_estacoes))
+  } else if (opcao == 17) {
+    fPlotarEstacoes(df_estacoes, "temp")
+  } else if (opcao == 18) {
+    fPlotarEstacoes(df_estacoes, "umid")
+  } else if (opcao == 19) {
+    fPlotarEstacoes(df_estacoes, "vento")
+  } else if (opcao == 20) {
+    fPlotarEstacoes(df_estacoes, "sensa")
+  }
 }
