@@ -1,8 +1,11 @@
 library(stringr)
 library(ggplot2)
 
-myView <- function(x, title)
+myView <- function(x, title) #Funcao para printar as tabelas
   get("View", envir = as.environment("package:utils"))(x, title)
+
+#====================================================================================
+#Analisando os dados brutos
 
 leitura_de_dados <- function(caminho) {
   #Lendo os dados do csv ja baixado
@@ -48,6 +51,8 @@ print_intervalos_entre_registros <- function(df) {
 }
 
 #====================================================================================
+#Analise dos erros do DataFrame original
+
 anos <- c("2014","2015","2016","2017","2018","2019","2020") # Coluna com os anos
 get_tabelaErro <- function(df) {
   #grafico com frequencia de [ERRO] na temperatura em cada ano
@@ -67,6 +72,7 @@ get_tabelaErro <- function(df) {
   tabelaErro <- data.frame(Ano=anos, QtdErros=erros,stringsAsFactors=TRUE); # Data Frame com os anos e qtd erros equivalentes
   return(tabelaErro)
 }
+
 #Gráfico de [ERRO]:
 print_graficoERRO <- function(df){
   tabelaErro <- get_tabelaErro(df)
@@ -75,6 +81,7 @@ print_graficoERRO <- function(df){
   print(plot)
 }
 #====================================================================================
+#Removendo os erros do DataFrame
 
 retira_ERRO <- function(df) {
   #Tratamento de dados:
@@ -129,6 +136,8 @@ print_graficoUmidZero <- function(df){
 }
 
 #====================================================================================
+#Processamento inicial
+
 processa_dataframe <- function(df) {
   df$horario <- as.POSIXct(df$horario,format="%d/%m/%Y-%H:%M",tz=Sys.timezone())
   #Ajustando os tipos das colunas
@@ -256,7 +265,7 @@ fCalcula_media_diaria <- function(df){
 #Cria o plot que relaciona a Umidade e a Sensação térmica conforme o tempo passa
 #start e end são parâmetros que indicam o intervalo que deve ser plotado
 plotTimeXUmidSens <- function(df, start="2015-01-01", end="2020-01-01") {
-  #normalizaððo dos dados
+  #normalização dos dados
   df$umid <- (df$umid - min(df$umid))/(max(df$umid) - min(df$sensa))
   df$sensa <- (df$sensa - min(df$sensa))/(max(df$sensa) - min(df$sensa))
   
@@ -295,7 +304,9 @@ plotUmidXSens <- function(df) {
 }
 
 #====================================================================================
-tempoIni <- 0
+#Analise das variaveis por horario do dia
+
+tempoIni <- 0 #Guarda o valor o primeiro horario disponivel no DataFrame
 
 fAgrupa_horario <- function(df) {
   #Ajustando as datas para suas devidas horas do dia
@@ -387,6 +398,7 @@ fTabelaHor <- function(dfTabelaHor){
 }
 
 #====================================================================================
+#Analise dos dados de acordo com as estacoes
 
 fColunasEstacoes = function (df) {
   df["estacao"] = 0
@@ -446,7 +458,6 @@ fAgregarColunas = function(df, colunaAPlotar) {
 
 fPlotarEstacoes = function(dfEstacoes, colunaAPlotar) {
   # Plotando o gráfico
-  
   if (colunaAPlotar == 'umid') {
     p <- ggplot(dfEstacoes,aes(x = DiaEstacao, y=umid, colour=estacao))
     p <- p + ylab("Umidade do ar (%)")
@@ -475,7 +486,6 @@ fPlotarEstacoes = function(dfEstacoes, colunaAPlotar) {
 
 fTabelaEstacoes = function(df) {
   # Tabela
-  
   tabelaEstacoes = aggregate(df[c("temp", "vento", "umid", "sensa")], by=list(Estacao=df$estacao), FUN=mean)
   colnames(tabelaEstacoes)[2] <- "Temperatura (°C)"
   colnames(tabelaEstacoes)[3] <- "Vento (km/h)"
@@ -488,6 +498,9 @@ fCorEstacoes = function(df) {
   # Correlação de Pearson de temperatura e sensação térmica
   cor(df$temp, df$sensa, method = c("pearson"))
 }
+
+#====================================================================================
+#Criando Menu interativo
 
 caminho <- readline("Digite o caminho absoluto para o cepagri.csv: ")
 
@@ -532,10 +545,10 @@ while (T) {
     print(paste(as.character(i), ". ", opcoes[i]))
   }
   
-  opcao <- as.numeric(readline("Selecione a opção: "))
+  opcao <- as.numeric(readline("Selecione a opção (0 para finalizar): "))
   
   if (opcao < 1 || opcao > 20) {
-    stop("Digitou errado.")
+    stop("Finalizando programa.")
   }
   
   if (opcao == 1) {
